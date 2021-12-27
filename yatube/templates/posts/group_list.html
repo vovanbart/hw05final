@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% block title %}{{ group.title }}{% endblock %}
+{% block header %}<h1>«{{ group.title }}»</h1>{% endblock %} 
+{% block content %}
+<p>{{ group.description }}</p>
+<small class="text-muted fs-6">Всего постов в группе: {{ count }}</small> 
+<hr>
+{% for post in page_obj %}
+{% include 'posts/includes/post_list.html' %}
+{% endfor %} 
+{% include 'posts/includes/paginator.html' %}
+{% endblock %} 
