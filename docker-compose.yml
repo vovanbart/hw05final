@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+  web:
+    environment:
+      - DJANGO_SETTINGS_MODULE=yatube.settings
+    build: .
+    command: gunicorn yatube.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    volumes:
+      - .:/app
+      # Папка для media из settings.MEDIA_ROOT
+      - ./yatube/media:/app/yatube/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+
+  nginx:
+    build:
+      context: .              # корень, где лежит Dockerfile.nginx и nginx.conf
+      dockerfile: Dockerfile.nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./yatube/staticfiles:/usr/share/nginx/html/static:ro
+        # Медиа от Django media
+      - ./yatube/media:/usr/share/nginx/html/media:ro
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
